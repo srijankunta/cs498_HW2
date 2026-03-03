@@ -1,0 +1,46 @@
+import requests
+import time
+import uuid
+
+us_ip = "35.238.189.171"
+eu_ip = "146.148.18.63"
+
+#PART A LATENCY
+print("Checking latency")
+
+for name, ip in [("US", us_ip), ("EU", eu_ip)]:
+    reg_times = []
+    list_times = []
+    
+    for _ in range(10):
+        t1 = time.time()
+        requests.post(f"http://{ip}:8080/register", json={"username": "test"})
+        reg_times.append(time.time() - t1)
+        
+        t2 = time.time()
+        requests.get(f"http://{ip}:8080/list")
+        list_times.append(time.time() - t2)
+        
+    avg_reg = sum(reg_times) / 10
+    avg_list = sum(list_times) / 10
+    print(f"{name} Results -> Register: {avg_reg:.4f}s, List: {avg_list:.4f}s")
+
+
+
+
+#PART B Consistency
+print("\nTesting replication lag...")
+misses = 0
+
+for i in range(100):
+    user = f"user_{uuid.uuid4().hex[:6]}"
+    
+    requests.post(f"http://{us_ip}:8080/register", json={"username": user})
+    
+    resp = requests.get(f"http://{eu_ip}:8080/list").json()
+    
+    if user not in resp.get("users", []):
+        misses += 1
+        print(f"Miss #{misses}: {user} didnt make it to EU yet")
+
+print(f"\nDone. Found {misses} consistency misses out of 100.")
