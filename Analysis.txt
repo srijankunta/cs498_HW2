@@ -1,0 +1,15 @@
+for the /register endpoint:
+latency is:  US: 0.0689s
+             EU: 0.3151s
+
+for teh /list endpoint:
+latency is: US: 0.0833s
+            EU: 0.3259s
+
+And for the eventual consistency experiment, I saw that there were 0 misses.
+
+Looking at the latency measurements, I am seeing what I expected. There's an about 5 times longer delay for the EU instance than the US instance. This makes sense since the distance is so far for the EU server, so the latency will be more. 
+The US machine is relatively close so it uses the domestic network so it is much faster, while the EU server, the signal had to go across the ocean. For this, 0.3s latency is still fairly impressive.
+
+the consistency results were somewhat not what i expected. I know that firestore is eventually consistent, not strongly consistent, so I expected some consistency misses, but instead there werre no misses. The data was replicated all the way across the world faster
+than I could finish the POST request and make the GET request. I am guessing that misses will be seen when there is much much heavier load and delays in the system. 
